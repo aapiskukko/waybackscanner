@@ -11,6 +11,7 @@ import re
 
 import logger
 import utils
+import rejects
 from url import Url
 from waybackapi import WaybackApi
 
@@ -24,38 +25,15 @@ class WaybackScanner:
         self._urls = []
         self._kws = []
         self._urls_file = None
-        self._rejected_suffixes = {
-            ".css",
-            ".jpg",
-            ".png",
-            ".gif",
-            ".svg",
-            ".ico",
-            ".woff2"}
-        self._rejected_keywords = {
-            "jquery",
-            "bootstrap"}
-        self._rejected_domains = {
-            "w3.org",
-            "angularjs.org",
-            "reactjs.org",
-            "googleapis.com",
-            "archive.org",
-            "archive-it.org",
-            "ietf.org",
-            "openlibrary.org",
-            "schemas.microsoft.com"}
-        self._mimes = {
-            "application/javascript",
-            "application/x-javascript"}
 
         try:
             os.mkdir("temp")
-        except FileExistsError as err:
+        except FileExistsError:
             pass
 
     def find(self, domain):
-        name = Url(domain).host
+        url = Url(domain)
+        name = url.host or url.path
         self._urls.clear()
         self._kws.clear()
         self._urls_file = f"temp/{name}-wburls.txt"
@@ -76,7 +54,7 @@ class WaybackScanner:
         return self._urls
 
     def handle_page(self, domain, index):
-        for mime in self._mimes:
+        for mime in rejects.mimes:
             items = self._api.get_page(domain, index, mime)
             for item in items[1:]:
                 url = Url(item[0])
@@ -102,13 +80,13 @@ class WaybackScanner:
                     f.write(f"{item}\n")
 
     def allowed_url(self, url):
-        for suffix in self._rejected_suffixes:
+        for suffix in rejects.suffixes:
             if suffix in url.path:
                 return False
-        for domain in self._rejected_domains:
+        for domain in rejects.domains:
             if domain in url.host:
                 return False
-        for kw in self._rejected_keywords:
+        for kw in rejects.keywords:
             if kw in url.path:
                 return False
         return True

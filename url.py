@@ -1,12 +1,7 @@
 import sys
-if sys.version_info[0] < 3:
-    import urlparse
-    from urllib import urlencode
-    from urllib import unquote
-else:
-    import urllib.parse as urlparse
-    from urllib.parse import urlencode
-    from urllib.parse import unquote
+import urllib.parse as urlparse
+from urllib.parse import urlencode
+from urllib.parse import unquote
 
 
 class Url(object):
