@@ -1,0 +1,7 @@
+__pycache*
+Session.vim
+*.pyc
+temp
+amass
+amass_output
+temp
