@@ -93,7 +93,7 @@ class WaybackScanner:
 
     def find_keywords(self, url, text):
         for kw in utils.import_keywords():
-            ptr = r"({}[a-zA-Z0-9_]*)\s*[=:]?\s*[\"\']{{1}}([a-zA-Z0-9-\:/.?#]+)[\"\']{{1}}".format(kw)
+            ptr = r"({}[a-zA-Z0-9_]*)\s*[=:]?\s*[\"\']{{1}}([a-zA-Z0-9-\:/.?#]{{2,}})[\"\']{{1}}".format(kw)
             rex = re.compile(ptr, re.IGNORECASE)
             matches = rex.findall(text)
             if not matches:
