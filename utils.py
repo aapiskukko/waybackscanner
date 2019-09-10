@@ -1,11 +1,10 @@
 import re
 import linkfinder
 import sys
+import urllib.parse as urlparse
+import requests
 
-if sys.version_info[0] < 3:
-    import urlparse
-else:
-    import urllib.parse as urlparse
+import rejects
 
 
 def parse_absolute_urls(text):
@@ -46,9 +45,9 @@ def parse_params(url):
     return urlparse.parse_qsl(url.query)
 
 
-def import_keywords():
+def import_keywords(path):
     out = []
-    with open("lists/keywords.txt", "r+") as keywords:
+    with open(path, "r+") as keywords:
         for kw in keywords:
             if not kw.startswith("#"):
                 kw = kw.strip()
@@ -59,3 +58,24 @@ def import_keywords():
 def is_hash(val):
     rex = "(i^[0-9a-fA-F_.-]{4,})$"
     return re.match(rex, val)
+
+def url_exists(url):
+    try:
+        ret = requests.get(url, allow_redirects=True, timeout=1)
+        if ret.status_code != 404:
+            return ret.status_code
+        return False
+    except requests.RequestException:
+        return False
+
+def allowed_url(url):
+    for suffix in rejects.suffixes:
+        if suffix in url.path:
+            return False
+    for domain in rejects.domains:
+        if domain in url.host:
+            return False
+    for kw in rejects.keywords:
+        if kw in url.path:
+            return False
+    return True

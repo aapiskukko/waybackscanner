@@ -23,8 +23,10 @@ class WaybackScanner:
     def __init__(self):
         self._api = WaybackApi()
         self._urls = []
-        self._kws = []
+        self._found_kws = {}
         self._urls_file = None
+        self._kws_file = None
+        self._kw_cands = utils.import_keywords("lists/keywords.txt.1")
 
         try:
             os.mkdir("temp")
@@ -35,7 +37,7 @@ class WaybackScanner:
         url = Url(domain)
         name = url.host or url.path
         self._urls.clear()
-        self._kws.clear()
+        self._found_kws.clear()
         self._urls_file = f"temp/{name}-wburls.txt"
         self._kws_file = f"temp/{name}-keywords.txt"
         try:
@@ -54,57 +56,63 @@ class WaybackScanner:
         return self._urls
 
     def handle_page(self, domain, index):
-        for mime in rejects.mimes:
-            items = self._api.get_page(domain, index, mime)
-            for item in items[1:]:
-                url = Url(item[0])
-                if self.allowed_url(url):
-                    wb_url, text = self._api.get_file(str(url), item[1])
-                    if not text:
-                        continue
-                    self.find_urls(url, text)
-                    self.find_keywords(wb_url, text)
+        items = self._api.get_page(domain, index)
+        for item in items[1:]:
+            url = Url(item[0])
+            if utils.allowed_url(url):
+                wb_url, text = self._api.get_file(str(url), item[1])
+                if not text:
+                    continue
+                self.find_urls(url, text)
+                self.find_keywords_2(str(url), wb_url, text)
 
     def find_urls(self, url, text):
-        with open(self._urls_file, "a") as f:
-            if str(url) not in self._urls:
-                f.write(f"{str(url)}\n")
+        with open(self._urls_file, "a") as fl:
+            code = utils.url_exists(url)
+            if str(url) not in self._urls and code:
+                fl.write(f"{str(url)} {code}\n")
                 self._urls.append(str(url))
-                log.info(f"URL: {str(url)}")
+                log.info(f"URL: {str(url)} {code}")
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
-                if self.allowed_url(Url(item)) and item not in self._urls:
+                code = utils.url_exists(url)
+                if utils.allowed_url(Url(item)) and item not in self._urls and code:
                     self._urls.append(item)
-                    log.info(f"URL: {item}")
-                    f.write(f"{item}\n")
+                    log.info(f"URL: {item} {code}")
+                    fl.write(f"{item} {code}\n")
 
-    def allowed_url(self, url):
-        for suffix in rejects.suffixes:
-            if suffix in url.path:
-                return False
-        for domain in rejects.domains:
-            if domain in url.host:
-                return False
-        for kw in rejects.keywords:
-            if kw in url.path:
-                return False
-        return True
+    # def find_keywords(self, url, text):
+        # for kw in utils.import_keywords("lists/keywords.txt"):
+            # ptr = r"({}[a-zA-Z0-9_]*)\s*[=:]?\s*[\"\']{{1}}([a-zA-Z0-9-\:/.?#]{{2,}})[\"\']{{1}}".format(kw)
+            # rex = re.compile(ptr, re.IGNORECASE)
+            # matches = rex.findall(text)
+            # if not matches:
+                # continue
+            # with open(self._kws_file, "a") as fl:
+                # for match in matches:
+                    # kw = f"{url} {match[0]}={match[1]}"
+                    # if kw not in self._kws:
+                        # log.info(f"KEYWORD: {kw}")
+                        # fl.write(f"{kw}\n")
+                        # self._kws.append(kw)
 
-    def find_keywords(self, url, text):
-        for kw in utils.import_keywords():
-            ptr = r"({}[a-zA-Z0-9_]*)\s*[=:]?\s*[\"\']{{1}}([a-zA-Z0-9-\:/.?#]{{2,}})[\"\']{{1}}".format(kw)
-            rex = re.compile(ptr, re.IGNORECASE)
-            matches = rex.findall(text)
-            if not matches:
-                continue
-            with open(self._kws_file, "a") as f:
-                for match in matches:
-                    kw = f"{url} {match[0]}={match[1]}"
-                    if kw not in self._kws:
-                        log.info(f"KEYWORD: {kw}")
-                        f.write(f"{kw}\n")
-                        self._kws.append(kw)
+    def find_keywords_2(self, url, wb_url, text):
+        text = text.replace(" ", "")
+        matches = []
+        for kw in self._kw_cands:
+            if kw in text:
+                matches.append(kw)
+        if not matches:
+            return
+        with open(self._kws_file, "a") as fl:
+            for match in matches:
+                if not self._found_kws.get(url):
+                    self._found_kws[url] = []
+                if match not in self._found_kws[url]:
+                    log.info(f"KEYWORD: {wb_url} {match}")
+                    self._found_kws[url].append(match)
+                    fl.write(f"{wb_url} {match}\n")
 
 
 def main():

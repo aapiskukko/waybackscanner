@@ -1,9 +1,8 @@
-import requests
 import json
+import requests
 
 import logger
-import utils
-from url import Url
+import rejects
 
 
 log = logger.new_sublogger("waybapi")
@@ -26,11 +25,12 @@ class WaybackApi:
         except ValueError as err:
             log.error(f"error converting to int: {err}")
 
-    def get_page(self, domain, index, mime):
+    def get_page(self, domain, index):
         url = f"{self._cdx_url}?"
         url += f"&url={domain}/*"
         url += "&output=json"
-        url += f"&filter=mimetype:{mime}"
+        for mime in rejects.mimes:
+            url += f"&filter=!mimetype:{mime}"
         url += "&collapse=digest"
         url += "&fl=original,timestamp,statuscode,length"
         url += f"&page={index}"
