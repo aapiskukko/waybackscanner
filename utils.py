@@ -70,12 +70,12 @@ def url_exists(url):
 
 def allowed_url(url):
     for suffix in rejects.suffixes:
-        if suffix in url.path:
+        if suffix.lower() in url.path.lower():
             return False
     for domain in rejects.domains:
-        if domain in url.host:
+        if domain.lower() in url.host:
             return False
     for kw in rejects.keywords:
-        if kw in url.path:
+        if kw.lower() in url.path:
             return False
     return True

@@ -45,6 +45,7 @@ class WaybackApi:
 
     def get_file(self, filee, ts):
         url = f"http://web.archive.org/web/{ts}id_/{filee}"
+        log.info("downloading %s", url)
         try:
             ret = requests.get(url)
             return url, ret.text

@@ -7,7 +7,12 @@ suffixes = {
     ".svg",
     ".ico",
     ".woff2",
-    "mp4"}
+    "mp4",
+    "tif",
+    "ttf",
+    "woff",
+    "eot",
+    "pdf"}
 
 keywords = {
     "jquery",
@@ -27,20 +32,20 @@ domains = {
     "enable-javascript.com",
     "adobe.com"}
 
-# mimes = {
-    # "image/gif",
-    # "image/png",
-    # "text/css",
-    # "image/jpeg",
-    # "text/html",
-    # "warc/revisit",
-    # "video/mp4",
-    # "image/svg+xml"}
-
 mimes = {
     "image/gif",
     "image/png",
     "text/css",
     "image/jpeg",
+    "text/html",
+    "warc/revisit",
     "video/mp4",
     "image/svg+xml"}
+
+# mimes = {
+    # "image/gif",
+    # "image/png",
+    # "text/css",
+    # "image/jpeg",
+    # "video/mp4",
+    # "image/svg+xml"}
