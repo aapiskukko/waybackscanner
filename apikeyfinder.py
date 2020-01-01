@@ -18,6 +18,7 @@ KEYWORDS = {
 ApiKey = collections.namedtuple('ApiKey', 'key value')
 
 class ApiKeyFinder:
+    """ Find API keys from Javascript content """
     def __init__(self):
         self._results = []
         self._pool = Pool(min(10, len(KEYWORDS)))
@@ -25,7 +26,7 @@ class ApiKeyFinder:
 
     def _format_pattern(self):
         # match MY_API_{KEYWORD} style pattern
-        ptr = r"(([a-z0-9]{{1,12}}[-_]?){{1,5}}{})"
+        ptr = r"(([a-z0-9]{{1,20}}[-_]?){{1,5}}{})"
         # match variable assignment char = or :
         ptr += r"[=:]{{1}}"
         # match string begin char " or ' or `

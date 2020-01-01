@@ -39,8 +39,8 @@ class WaybackScanner:
         name = url.host or url.path
         self._urls.clear()
         self._found_kws.clear()
-        self._urls_file = f"temp/{name}-wburls.txt"
-        self._kws_file = f"temp/{name}-keywords.txt"
+        self._urls_file = f"temp/{name}-urls.txt"
+        self._kws_file = f"temp/{name}-keys.txt"
         try:
             os.remove(self._urls_file)
             os.remove(self._kws_file)
@@ -59,19 +59,20 @@ class WaybackScanner:
     def handle_page(self, domain, index):
         log.info("getting page %s urls", index)
         items = self._api.get_page(domain, index)
-        log.info("found %s urls in page %s", len(items), index)
-        pool = Pool(1)
-        for item in items[1:]:
-            url = Url(item[0])
-            if utils.allowed_url(url):
-                pool.spawn(self.handle_file, str(url), item[1])
+        if items:
+            log.info("found %s urls in page %s", len(items), index)
+            pool = Pool(1)
+            for item in items[1:]:
+                url = Url(item[0])
+                if utils.allowed_url(url):
+                    pool.spawn(self.handle_file, url, item[1])
 
     def handle_file(self, url, ts):
         wb_url, text = self._api.get_file(url, ts)
         if text:
             md5sum = hashlib.md5(text.encode("utf-8")).hexdigest()
             if md5sum not in self._found_files:
-                # self.find_urls(url, text)
+                self.find_urls(url, text)
                 self.find_keywords(wb_url, text)
                 self._found_files.add(md5sum)
 
