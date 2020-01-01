@@ -57,7 +57,7 @@ class WaybackScanner:
         return self._urls
 
     def handle_page(self, domain, index):
-        log.info("getting page %s urls", index)
+        log.debug("getting page %s urls", index)
         items = self._api.get_page(domain, index)
         if items:
             log.info("found %s urls in page %s", len(items), index)
@@ -93,7 +93,7 @@ class WaybackScanner:
                     fl.write(f"{item} {code}\n")
 
     def find_keywords(self, wb_url, text):
-        log.info("finding keywords for %s", wb_url)
+        log.debug("finding keywords for %s", wb_url)
         keys = self._keyfinder.find(text)
         with open(self._kws_file, "a") as fl:
             for key in keys:

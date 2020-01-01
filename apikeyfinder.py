@@ -32,7 +32,7 @@ class ApiKeyFinder:
         # match string begin char " or ' or `
         ptr += r"[\"\'`]{{1}}"
         # match api key content
-        ptr += r"([a-z0-9_-]{{2,512}})"
+        ptr += r"([a-z0-9_/+-]{{2,512}})"
         # match string begin char " or ' or `
         ptr += r"[\"\'`]{{1}}"
         return ptr
