@@ -5,9 +5,8 @@ from gevent.pool import Pool
 import sys
 import logging
 import os
-import re
-import time
 import hashlib
+import time
 
 import logger
 import utils
@@ -27,7 +26,6 @@ class WaybackScanner:
         self._kws_file = None
         self._kw_cands = utils.import_keywords("lists/keywords.txt.1")
         self._found_files = set()
-        self._keyfinder = ApiKeyFinder()
 
         try:
             os.mkdir("temp")
@@ -94,14 +92,17 @@ class WaybackScanner:
 
     def find_keywords(self, wb_url, text):
         log.debug("finding keywords for %s", wb_url)
-        keys = self._keyfinder.find(text)
+        keyfinder = ApiKeyFinder()
+        now = time.time()
+        keys = keyfinder.find(text)
+        log.debug("found {} keys in {} s".format(len(keys), round(time.time() - now, 3)))
         with open(self._kws_file, "a") as fl:
             for key in keys:
                 log.info(f"KEYWORD: {wb_url} {key.key}={key.value}")
                 fl.write(f"{wb_url} {key.key}={key.value}\n")
 
 def main():
-    logger.init(logging.INFO, None, True)
+    logger.init(logging.DEBUG, None, True)
     wbscan = WaybackScanner()
     wbscan.find(sys.argv[1])
 

@@ -48,4 +48,5 @@ mimes = {
     # "text/css",
     # "image/jpeg",
     # "video/mp4",
+    # "warc/revisit",
     # "image/svg+xml"}
