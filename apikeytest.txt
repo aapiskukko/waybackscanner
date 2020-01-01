@@ -1,0 +1,6 @@
+my-key="23ttfwfe"
+my-key="43ttfwfe"
+API_KEY="1234"
+API_KEY="1234"
+EKA_SECRET_KEY = "432444efd";
+myApiToken: 'r32r432r'}
