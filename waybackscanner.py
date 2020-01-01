@@ -102,7 +102,7 @@ class WaybackScanner:
                 fl.write(f"{wb_url} {key.key}={key.value}\n")
 
 def main():
-    logger.init(logging.DEBUG, None, True)
+    logger.init(logging.INFO, None, True)
     wbscan = WaybackScanner()
     wbscan.find(sys.argv[1])
 
