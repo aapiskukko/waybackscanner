@@ -1,6 +1,5 @@
 import re
 import linkfinder
-import sys
 import urllib.parse as urlparse
 import requests
 
@@ -59,11 +58,12 @@ def is_hash(val):
     rex = "(i^[0-9a-fA-F_.-]{4,})$"
     return re.match(rex, val)
 
-def url_exists(url):
+def url_exists(url, ignore_codes, ignore_texts):
     try:
-        ret = requests.get(url, allow_redirects=True, timeout=1)
-        if ret.status_code != 404:
-            return ret.status_code
+        ret = requests.get(url, allow_redirects=False, timeout=2)
+        if ret.status_code not in ignore_codes:
+            if all(text not in ret.text for text in ignore_texts):
+                return ret.status_code
         return False
     except requests.RequestException:
         return False

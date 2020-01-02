@@ -3,7 +3,6 @@ import gevent
 gevent.monkey.patch_all()
 from gevent.pool import Pool
 import sys
-import logging
 import os
 import hashlib
 import time
@@ -13,18 +12,20 @@ import utils
 from url import Url
 from waybackapi import WaybackApi
 from apikeyfinder import ApiKeyFinder
+from configreader import ConfigReader, ConfigReaderException
+from argsreader import ArgsReader, ArgsReaderException
 
 
 log = logger.new_sublogger("waybscan")
 
 class WaybackScanner:
-    def __init__(self):
+    def __init__(self, conf):
+        self._conf = conf
         self._api = WaybackApi()
         self._urls = []
         self._found_kws = {}
         self._urls_file = None
         self._kws_file = None
-        self._kw_cands = utils.import_keywords("lists/keywords.txt.1")
         self._found_files = set()
 
         try:
@@ -76,7 +77,7 @@ class WaybackScanner:
 
     def find_urls(self, url, text):
         with open(self._urls_file, "a") as fl:
-            code = utils.url_exists(url)
+            code = utils.url_exists(url, self._conf.ignore_codes, self._conf.ignore_texts)
             if str(url) not in self._urls and code:
                 fl.write(f"{str(url)} {code}\n")
                 self._urls.append(str(url))
@@ -84,7 +85,7 @@ class WaybackScanner:
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
-                code = utils.url_exists(url)
+                code = utils.url_exists(url, self._conf.ignore_codes, self._conf.ignore_texts)
                 if utils.allowed_url(Url(item)) and item not in self._urls and code:
                     self._urls.append(item)
                     log.info(f"URL: {item} {code}")
@@ -102,9 +103,24 @@ class WaybackScanner:
                 fl.write(f"{wb_url} {key.key}={key.value}\n")
 
 def main():
-    logger.init(logging.INFO, None, True)
-    wbscan = WaybackScanner()
-    wbscan.find(sys.argv[1])
+    conf = ConfigReader()
+    args = ArgsReader()
+
+    try:
+        args.read()
+        conf.read(args.conf_file)
+        conf.override(args)
+        logger.init(conf.log_level, conf.log_file, conf.log_stdout)
+        conf.show()
+    except (ArgsReaderException, ConfigReaderException) as err:
+        print(f"error in init: {err}")
+        sys.exit(1)
+
+    try:
+        wbscan = WaybackScanner(conf)
+        wbscan.find(conf.target_host)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
