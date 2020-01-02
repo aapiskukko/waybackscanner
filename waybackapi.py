@@ -12,11 +12,24 @@ class WaybackApi:
     def __init__(self):
         self._cdx_url = "http://web.archive.org/cdx/search/cdx"
 
-    def get_page_count(self, domain):
+    def _create_query(self, domain, index=0, get_count=False):
         url = f"{self._cdx_url}?"
         url += f"&url={domain}/*"
-        url += "&showNumPages=true"
+        url += "&output=json"
+        for mime in rejects.mimes:
+            url += f"&filter=!mimetype:{mime}"
+        url += "&filter=statuscode:200"
+        url += "&collapse=urlkey"
+        url += "&fl=timestamp,original"
+        url += "&from=2017"
+        if get_count:
+            url += "&showNumPages=true"
+        else:
+            url += f"&page={index}"
+        return url
 
+    def get_page_count(self, domain):
+        url = self._create_query(domain, get_count=True)
         try:
             ret = requests.get(url)
             return int(ret.text)
@@ -26,15 +39,7 @@ class WaybackApi:
             log.error(f"error converting to int: {err}")
 
     def get_page(self, domain, index):
-        url = f"{self._cdx_url}?"
-        url += f"&url={domain}/*"
-        url += "&output=json"
-        for mime in rejects.mimes:
-            url += f"&filter=!mimetype:{mime}"
-        url += "&collapse=digest"
-        url += "&fl=original,timestamp,statuscode,length"
-        url += f"&page={index}"
-
+        url = self._create_query(domain, index=index)
         try:
             ret = requests.get(url)
             if ret.status_code != 200:

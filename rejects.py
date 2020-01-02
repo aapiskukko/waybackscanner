@@ -30,17 +30,18 @@ domains = {
     "schemas.microsoft.com",
     "schema.org",
     "enable-javascript.com",
-    "adobe.com"}
+    "adobe.com",
+    "momentjs.com",
+    "google-analytics.com"}
 
 mimes = {
     "image/gif",
     "image/png",
-    "text/css",
     "image/jpeg",
-    "text/html",
     "warc/revisit",
     "video/mp4",
-    "image/svg+xml"}
+    "image/svg+xml",
+    "application/pdf"}
 
 # mimes = {
     # "image/gif",
@@ -49,4 +50,5 @@ mimes = {
     # "image/jpeg",
     # "video/mp4",
     # "warc/revisit",
-    # "image/svg+xml"}
+    # "image/svg+xml",
+    # "application/pdf"}

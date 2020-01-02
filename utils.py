@@ -58,9 +58,9 @@ def is_hash(val):
     rex = "(i^[0-9a-fA-F_.-]{4,})$"
     return re.match(rex, val)
 
-def url_exists(url, ignore_codes, ignore_texts):
+def url_exists(url, ignore_codes, ignore_texts, redir=False):
     try:
-        ret = requests.get(url, allow_redirects=False, timeout=2)
+        ret = requests.get(url, allow_redirects=redir, timeout=2)
         if ret.status_code not in ignore_codes:
             if all(text not in ret.text for text in ignore_texts):
                 return ret.status_code

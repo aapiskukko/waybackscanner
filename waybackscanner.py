@@ -62,9 +62,9 @@ class WaybackScanner:
             log.info("found %s urls in page %s", len(items), index)
             pool = Pool(1)
             for item in items[1:]:
-                url = Url(item[0])
+                url = Url(item[1])
                 if utils.allowed_url(url):
-                    pool.spawn(self.handle_file, url, item[1])
+                    pool.spawn(self.handle_file, url, item[0])
 
     def handle_file(self, url, ts):
         wb_url, text = self._api.get_file(url, ts)
@@ -77,7 +77,11 @@ class WaybackScanner:
 
     def find_urls(self, url, text):
         with open(self._urls_file, "a") as fl:
-            code = utils.url_exists(url, self._conf.ignore_codes, self._conf.ignore_texts)
+            code = utils.url_exists(
+                url,
+                self._conf.ignore_codes,
+                self._conf.ignore_texts,
+                self._conf.redirect)
             if str(url) not in self._urls and code:
                 fl.write(f"{str(url)} {code}\n")
                 self._urls.append(str(url))
@@ -85,7 +89,11 @@ class WaybackScanner:
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
-                code = utils.url_exists(url, self._conf.ignore_codes, self._conf.ignore_texts)
+                code = utils.url_exists(
+                    url,
+                    self._conf.ignore_codes,
+                    self._conf.ignore_texts,
+                    self._conf.redirect)
                 if utils.allowed_url(Url(item)) and item not in self._urls and code:
                     self._urls.append(item)
                     log.info(f"URL: {item} {code}")

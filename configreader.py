@@ -20,6 +20,7 @@ class ConfigReader(object):
         self.ignore_codes = [404]
         self.ignore_texts = []
         self.target_host = ""
+        self.redirect = False
 
         signal.signal(signal.SIGHUP, self.sighup_handler)
 
@@ -55,6 +56,8 @@ class ConfigReader(object):
                     self.ignore_codes = [int(x) for x in val.split(",")]
                 if key == "ignore-texts":
                     self.ignore_texts = val.split(",") if val else []
+                if key == "allow-redirect":
+                    self.redirect = val.lower() == "true"
 
     def show(self):
         log.info("---=== CONFIG %s ===---", self.conf_file)
@@ -67,6 +70,7 @@ class ConfigReader(object):
         log.info("url-finder")
         log.info("|-ignore-codes: %s", self.ignore_codes)
         log.info("|-ignore-texts: %s", self.ignore_texts)
+        log.info("|-allow-redirect: %s", self.redirect)
         log.info("---=== CONFIG %s ===---", self.conf_file)
 
     def override(self, args):
