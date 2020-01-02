@@ -21,6 +21,7 @@ class ConfigReader(object):
         self.ignore_texts = []
         self.target_host = ""
         self.redirect = False
+        self.validate_urls = True
 
         signal.signal(signal.SIGHUP, self.sighup_handler)
 
@@ -50,14 +51,16 @@ class ConfigReader(object):
                 if key == "host":
                     self.target_host = val
 
-        if "url-finder" in confparser.sections():
-            for key, val in confparser.items("url-finder"):
+        if "urls" in confparser.sections():
+            for key, val in confparser.items("urls"):
                 if key == "ignore-codes":
                     self.ignore_codes = [int(x) for x in val.split(",")]
                 if key == "ignore-texts":
                     self.ignore_texts = val.split(",") if val else []
-                if key == "allow-redirect":
+                if key == "redirect":
                     self.redirect = val.lower() == "true"
+                if key == "validate":
+                    self.validate_urls = val.lower() == "true"
 
     def show(self):
         log.info("---=== CONFIG %s ===---", self.conf_file)
@@ -67,10 +70,11 @@ class ConfigReader(object):
         log.info("|-stdout: %s", self.log_stdout)
         log.info("target")
         log.info("|-host: %s", self.target_host)
-        log.info("url-finder")
+        log.info("urls")
         log.info("|-ignore-codes: %s", self.ignore_codes)
         log.info("|-ignore-texts: %s", self.ignore_texts)
-        log.info("|-allow-redirect: %s", self.redirect)
+        log.info("|-redirect: %s", self.redirect)
+        log.info("|-validate: %s", self.validate_urls)
         log.info("---=== CONFIG %s ===---", self.conf_file)
 
     def override(self, args):

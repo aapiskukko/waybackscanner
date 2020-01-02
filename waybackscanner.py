@@ -77,11 +77,14 @@ class WaybackScanner:
 
     def find_urls(self, url, text):
         with open(self._urls_file, "a") as fl:
-            code = utils.url_exists(
-                url,
-                self._conf.ignore_codes,
-                self._conf.ignore_texts,
-                self._conf.redirect)
+            if self._conf.validate_urls:
+                code = utils.url_exists(
+                    url,
+                    self._conf.ignore_codes,
+                    self._conf.ignore_texts,
+                    self._conf.redirect)
+            else:
+                code = 200
             if str(url) not in self._urls and code:
                 fl.write(f"{str(url)} {code}\n")
                 self._urls.append(str(url))
@@ -89,11 +92,14 @@ class WaybackScanner:
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
-                code = utils.url_exists(
-                    url,
-                    self._conf.ignore_codes,
-                    self._conf.ignore_texts,
-                    self._conf.redirect)
+                if self._conf.validate_urls:
+                    code = utils.url_exists(
+                        url,
+                        self._conf.ignore_codes,
+                        self._conf.ignore_texts,
+                        self._conf.redirect)
+                else:
+                    code = 200
                 if utils.allowed_url(Url(item)) and item not in self._urls and code:
                     self._urls.append(item)
                     log.info(f"URL: {item} {code}")
