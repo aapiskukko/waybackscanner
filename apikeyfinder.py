@@ -1,7 +1,3 @@
-import gevent.monkey
-gevent.monkey.patch_all()
-import gevent
-from gevent.pool import Pool
 import sys
 import re
 import time
@@ -18,48 +14,53 @@ KEYWORDS = {
     "secret",
     "login"}
 
+# match keyword plus assignment operator
+PRE_TEMPL = r"{}[=:]{{1}}"
+
+# match MY_API_{KEYWORD} pattern
+TEMPL = r"(([a-z0-9]{{1,12}}[-_]?){{1,3}}{})"
+# match variable assignment char = or :
+TEMPL += r"[=:]{{1}}"
+# match string begin char " or ' or `
+TEMPL += r"[\"\'`]{{1}}"
+# match api key content
+TEMPL += r"([a-z0-9_/+-]{{2,256}})"
+# match string begin char " or ' or `
+TEMPL += r"[\"\'`]{{1}}"
+
 ApiKey = collections.namedtuple('ApiKey', 'key value')
-PreFilterMatch = collections.namedtuple('PreFilterMatch', 'key text')
 
 class ApiKeyFinder:
     """ Find API keys from Javascript content """
     def __init__(self):
         self._results = []
-        self._pool = Pool(min(10, len(KEYWORDS)))
-        self._template = self._format_pattern()
+        self._template = TEMPL
+        self._pre_filters = self._build_filters(PRE_TEMPL)
+        self._filters = self._build_filters(TEMPL)
 
-    def _format_pattern(self):
-        # match MY_API_{KEYWORD} pattern
-        ptr = r"(([a-z0-9]{{1,12}}[-_]?){{1,3}}{})"
-        # match variable assignment char = or :
-        ptr += r"[=:]{{1}}"
-        # match string begin char " or ' or `
-        ptr += r"[\"\'`]{{1}}"
-        # match api key content
-        ptr += r"([a-z0-9_/+-]{{2,256}})"
-        # match string begin char " or ' or `
-        ptr += r"[\"\'`]{{1}}"
-        return ptr
+    def _build_filters(self, templ):
+        out = {}
+        for keyword in KEYWORDS:
+            pattern = templ.format(keyword)
+            out[keyword] = re.compile(pattern, re.IGNORECASE)
+        return out
 
     def _pre_filter(self, text):
         text = text.replace("\r", "")
         text = text.replace("\n", "")
         text = text.replace(" ", "")
-        template = r"{}[=:]{{1}}"
         offset_low = 100
         offset_high = 300
         out = []
-        for keyword in KEYWORDS:
+        for keyword, filt in self._pre_filters.items():
             try:
-                pattern = template.format(keyword)
-                rex = re.compile(pattern, re.IGNORECASE)
-                res = rex.finditer(text)
+                res = filt.finditer(text)
                 indices = [m.start() for m in res]
                 for index in indices:
                     low = max(0, index - offset_low)
                     high = min(len(text), index + offset_high)
-                    subst = text[low:high]
-                    out.append(PreFilterMatch(keyword, subst))
+                    sub_text = text[low:high]
+                    out.append((keyword, sub_text))
             except ValueError:
                 continue
         return out
@@ -67,21 +68,15 @@ class ApiKeyFinder:
     def find(self, text):
         self._results.clear()
         cands = self._pre_filter(text)
-        for cand in cands:
-            self._pool.spawn(self._handle, cand.key, cand.text)
-        self._pool.join()
+        for keyword, sub_text in cands:
+            matches = self._filters[keyword].findall(sub_text)
+            for match in matches:
+                key = match[0]
+                val = match[2]
+                item = ApiKey(key, val)
+                if item not in self._results:
+                    self._results.append(item)
         return self._results
-
-    def _handle(self, keyword, text):
-        pattern = self._template.format(keyword)
-        rex = re.compile(pattern, re.IGNORECASE)
-        matches = rex.findall(text)
-        for match in matches:
-            key = match[0]
-            val = match[2]
-            item = ApiKey(key, val)
-            if item not in self._results:
-                self._results.append(item)
 
 def main():
     key_finder = ApiKeyFinder()

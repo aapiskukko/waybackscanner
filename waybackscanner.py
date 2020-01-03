@@ -23,7 +23,7 @@ class WaybackScanner:
         self._conf = conf
         self._api = WaybackApi()
         self._urls = []
-        self._found_kws = {}
+        self._found_kws = set()
         self._urls_file = None
         self._kws_file = None
         self._found_files = set()
@@ -71,39 +71,24 @@ class WaybackScanner:
         if text:
             md5sum = hashlib.md5(text.encode("utf-8")).hexdigest()
             if md5sum not in self._found_files:
-                self.find_urls(url, text)
+                if not self._conf.keys_only:
+                    self.find_urls(url, text)
                 self.find_keywords(wb_url, text)
                 self._found_files.add(md5sum)
 
     def find_urls(self, url, text):
         with open(self._urls_file, "a") as fl:
-            if self._conf.validate_urls:
-                code = utils.url_exists(
-                    url,
-                    self._conf.ignore_codes,
-                    self._conf.ignore_texts,
-                    self._conf.redirect)
-            else:
-                code = 200
-            if str(url) not in self._urls and code:
-                fl.write(f"{str(url)} {code}\n")
+            if str(url) not in self._urls:
+                fl.write(f"{str(url)}\n")
                 self._urls.append(str(url))
-                log.info(f"URL: {str(url)} {code}")
+                log.info(f"URL: {str(url)}")
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
-                if self._conf.validate_urls:
-                    code = utils.url_exists(
-                        url,
-                        self._conf.ignore_codes,
-                        self._conf.ignore_texts,
-                        self._conf.redirect)
-                else:
-                    code = 200
-                if utils.allowed_url(Url(item)) and item not in self._urls and code:
+                if utils.allowed_url(Url(item)) and item not in self._urls:
                     self._urls.append(item)
-                    log.info(f"URL: {item} {code}")
-                    fl.write(f"{item} {code}\n")
+                    log.info(f"URL: {item}")
+                    fl.write(f"{item}")
 
     def find_keywords(self, wb_url, text):
         log.debug("finding keywords for %s", wb_url)
@@ -113,8 +98,10 @@ class WaybackScanner:
         log.debug("found {} keys in {} s".format(len(keys), round(time.time() - now, 3)))
         with open(self._kws_file, "a") as fl:
             for key in keys:
-                log.info(f"KEYWORD: {wb_url} {key.key}={key.value}")
-                fl.write(f"{wb_url} {key.key}={key.value}\n")
+                if key not in self._found_kws:
+                    log.info(f"KEYWORD: {wb_url} {key.key}={key.value}")
+                    fl.write(f"{wb_url} {key.key}={key.value}\n")
+                    self._found_kws.add(key)
 
 def main():
     conf = ConfigReader()
@@ -130,8 +117,8 @@ def main():
         print(f"error in init: {err}")
         sys.exit(1)
 
+    wbscan = WaybackScanner(conf)
     try:
-        wbscan = WaybackScanner(conf)
         wbscan.find(conf.target_host)
     except KeyboardInterrupt:
         pass

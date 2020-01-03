@@ -2,7 +2,7 @@ import sys
 import logging
 import logging.handlers
 
-APP_NAME = "hunt"
+APP_NAME = "wbscan"
 
 
 class ShortLevelNameFilter(logging.Filter):

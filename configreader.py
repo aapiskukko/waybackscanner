@@ -17,11 +17,8 @@ class ConfigReader(object):
         self.log_file = "app.log"
         self.log_stdout = True
         self.conf_file = "conf/default.conf"
-        self.ignore_codes = [404]
-        self.ignore_texts = []
         self.target_host = ""
-        self.redirect = False
-        self.validate_urls = True
+        self.keys_only = False
 
         signal.signal(signal.SIGHUP, self.sighup_handler)
 
@@ -44,23 +41,14 @@ class ConfigReader(object):
                 if key == "level":
                     self.log_level = val
                 if key == "stdout":
-                    self.log_stdout = str(val).lower() == "true"
+                    self.log_stdout = val.lower() == "true"
 
         if "target" in confparser.sections():
             for key, val in confparser.items("target"):
                 if key == "host":
                     self.target_host = val
-
-        if "urls" in confparser.sections():
-            for key, val in confparser.items("urls"):
-                if key == "ignore-codes":
-                    self.ignore_codes = [int(x) for x in val.split(",")]
-                if key == "ignore-texts":
-                    self.ignore_texts = val.split(",") if val else []
-                if key == "redirect":
-                    self.redirect = val.lower() == "true"
-                if key == "validate":
-                    self.validate_urls = val.lower() == "true"
+                if key == "keywords-only":
+                    self.keys_only = val.lower() == "true"
 
     def show(self):
         log.info("---=== CONFIG %s ===---", self.conf_file)
@@ -70,11 +58,7 @@ class ConfigReader(object):
         log.info("|-stdout: %s", self.log_stdout)
         log.info("target")
         log.info("|-host: %s", self.target_host)
-        log.info("urls")
-        log.info("|-ignore-codes: %s", self.ignore_codes)
-        log.info("|-ignore-texts: %s", self.ignore_texts)
-        log.info("|-redirect: %s", self.redirect)
-        log.info("|-validate: %s", self.validate_urls)
+        log.info("|-keywords-only: %s", self.keys_only)
         log.info("---=== CONFIG %s ===---", self.conf_file)
 
     def override(self, args):
