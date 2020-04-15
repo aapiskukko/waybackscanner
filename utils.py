@@ -76,7 +76,7 @@ def allowed_url(url):
         if domain.lower() in url.host:
             return False
     for kw in rejects.keywords:
-        if kw.lower() in url.path:
+        if kw.lower() in str(url).lower():
             return False
     return True
 

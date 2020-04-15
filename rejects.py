@@ -16,9 +16,7 @@ suffixes = {
 
 keywords = {
     "jquery",
-    "bootstrap",
-    "title",
-    "browse"}
+    "bootstrap"}
 
 domains = {
     "w3.org",
@@ -34,7 +32,12 @@ domains = {
     "enable-javascript.com",
     "adobe.com",
     "momentjs.com",
-    "google-analytics.com"}
+    "google-analytics.com",
+    "google.com",
+    "twitter.com",
+    "youtube.com",
+    "linkedin.com",
+    "facebook.com"}
 
 mimes = {
     "image/gif",
