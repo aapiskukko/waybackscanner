@@ -37,7 +37,8 @@ domains = {
     "twitter.com",
     "youtube.com",
     "linkedin.com",
-    "facebook.com"}
+    "facebook.com",
+    "vimeo.com"}
 
 mimes = {
     "image/gif",
