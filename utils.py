@@ -79,3 +79,6 @@ def allowed_url(url):
         if kw.lower() in url.path:
             return False
     return True
+
+def has_query_params(url):
+    return "?" in url

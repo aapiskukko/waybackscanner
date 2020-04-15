@@ -21,7 +21,7 @@ class WaybackApi:
         url += "&filter=statuscode:200"
         url += "&collapse=urlkey"
         url += "&fl=timestamp,original"
-        url += "&from=2017"
+        url += "&from=2018"
         if get_count:
             url += "&showNumPages=true"
         else:
@@ -31,7 +31,8 @@ class WaybackApi:
     def get_page_count(self, domain):
         url = self._create_query(domain, get_count=True)
         try:
-            ret = requests.get(url)
+            headers = {"User-Agent": "curl/7.58.0"}
+            ret = requests.get(url, headers=headers)
             return int(ret.text)
         except requests.exceptions.RequestException as err:
             log.error(f"error getting page count: {err}")
@@ -41,7 +42,8 @@ class WaybackApi:
     def get_page(self, domain, index):
         url = self._create_query(domain, index=index)
         try:
-            ret = requests.get(url)
+            headers = {"User-Agent": "curl/7.58.0"}
+            ret = requests.get(url, headers=headers)
             if ret.status_code != 200:
                 log.warn(f"status code {ret.status_code} when getting page")
             return json.loads(ret.text)
@@ -52,7 +54,8 @@ class WaybackApi:
         url = f"http://web.archive.org/web/{ts}id_/{filee}"
         log.debug("downloading %s", url)
         try:
-            ret = requests.get(url)
+            headers = {"User-Agent": "curl/7.58.0"}
+            ret = requests.get(url, headers=headers)
             return url, ret.text
         except (requests.exceptions.RequestException, MemoryError) as err:
             log.error(f"error getting file: {err}")

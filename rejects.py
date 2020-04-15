@@ -16,7 +16,9 @@ suffixes = {
 
 keywords = {
     "jquery",
-    "bootstrap"}
+    "bootstrap",
+    "title",
+    "browse"}
 
 domains = {
     "w3.org",

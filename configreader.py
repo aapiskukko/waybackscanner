@@ -19,6 +19,7 @@ class ConfigReader(object):
         self.conf_file = "conf/default.conf"
         self.target_host = ""
         self.keys_only = False
+        self.only_params = True
 
         signal.signal(signal.SIGHUP, self.sighup_handler)
 
@@ -49,6 +50,8 @@ class ConfigReader(object):
                     self.target_host = val
                 if key == "keywords-only":
                     self.keys_only = val.lower() == "true"
+                if key == "query-parameter-urls-only":
+                    self.only_params = val.lower() == "true"
 
     def show(self):
         log.info("---=== CONFIG %s ===---", self.conf_file)
@@ -59,6 +62,7 @@ class ConfigReader(object):
         log.info("target")
         log.info("|-host: %s", self.target_host)
         log.info("|-keywords-only: %s", self.keys_only)
+        log.info("|-query-parameter-urls-only: %s", self.only_params)
         log.info("---=== CONFIG %s ===---", self.conf_file)
 
     def override(self, args):

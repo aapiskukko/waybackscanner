@@ -79,16 +79,28 @@ class WaybackScanner:
     def find_urls(self, url, text):
         with open(self._urls_file, "a") as fl:
             if str(url) not in self._urls:
-                fl.write(f"{str(url)}\n")
-                self._urls.append(str(url))
-                log.info(f"URL: {str(url)}")
+                if self._conf.only_params:
+                    if utils.has_query_params(str(url)):
+                        fl.write(f"{str(url)}\n")
+                        self._urls.append(str(url))
+                        log.info(f"URL: {str(url)}")
+                else:
+                    fl.write(f"{str(url)}\n")
+                    self._urls.append(str(url))
+                    log.info(f"URL: {str(url)}")
 
             parsed = utils.parse_urls(url, text)
             for item in parsed:
                 if utils.allowed_url(Url(item)) and item not in self._urls:
-                    self._urls.append(item)
-                    log.info(f"URL: {item}")
-                    fl.write(f"{item}")
+                    if self._conf.only_params:
+                        if utils.has_query_params(item):
+                            self._urls.append(item)
+                            log.info(f"URL: {item}")
+                            fl.write(f"{item}\n")
+                    else:
+                        self._urls.append(item)
+                        log.info(f"URL: {item}")
+                        fl.write(f"{item}\n")
 
     def find_keywords(self, wb_url, text):
         log.debug("finding keywords for %s", wb_url)
