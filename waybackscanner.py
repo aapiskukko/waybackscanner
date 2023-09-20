@@ -27,6 +27,7 @@ class WaybackScanner:
         self._urls_file = None
         self._kws_file = None
         self._found_files = set()
+        self._since = self._conf.start_year
 
         try:
             os.mkdir("temp")
@@ -46,7 +47,7 @@ class WaybackScanner:
         except OSError:
             pass
 
-        count = self._api.get_page_count(domain)
+        count = self._api.get_page_count(domain, since=self._since)
         log.info(f"requesting {count} pages")
 
         pool = Pool(min(8, count))
@@ -57,7 +58,7 @@ class WaybackScanner:
 
     def handle_page(self, domain, index):
         log.debug("getting page %s urls", index)
-        items = self._api.get_page(domain, index)
+        items = self._api.get_page(domain, index, since=self._since)
         if items:
             log.info("found %s urls in page %s", len(items), index)
             pool = Pool(1)

@@ -12,7 +12,7 @@ class WaybackApi:
     def __init__(self):
         self._cdx_url = "http://web.archive.org/cdx/search/cdx"
 
-    def _create_query(self, domain, index=0, get_count=False):
+    def _create_query(self, domain, index=0, get_count=False, since="2020"):
         url = f"{self._cdx_url}?"
         url += f"&url={domain}/*"
         url += "&output=json"
@@ -21,15 +21,15 @@ class WaybackApi:
         url += "&filter=statuscode:200"
         url += "&collapse=urlkey"
         url += "&fl=timestamp,original"
-        url += "&from=2018"
+        url += f"&from={since}"
         if get_count:
             url += "&showNumPages=true"
         else:
             url += f"&page={index}"
         return url
 
-    def get_page_count(self, domain):
-        url = self._create_query(domain, get_count=True)
+    def get_page_count(self, domain, since="2020"):
+        url = self._create_query(domain, get_count=True, since=since)
         try:
             headers = {"User-Agent": "curl/7.58.0"}
             ret = requests.get(url, headers=headers)
@@ -39,8 +39,8 @@ class WaybackApi:
         except ValueError as err:
             log.error(f"error converting to int: {err}")
 
-    def get_page(self, domain, index):
-        url = self._create_query(domain, index=index)
+    def get_page(self, domain, index, since="2020"):
+        url = self._create_query(domain, index=index, since=since)
         try:
             headers = {"User-Agent": "curl/7.58.0"}
             ret = requests.get(url, headers=headers)

@@ -20,6 +20,7 @@ class ConfigReader(object):
         self.target_host = ""
         self.keys_only = False
         self.only_params = True
+        self.start_year = "2018"
 
         signal.signal(signal.SIGHUP, self.sighup_handler)
 
@@ -52,6 +53,8 @@ class ConfigReader(object):
                     self.keys_only = val.lower() == "true"
                 if key == "query-parameter-urls-only":
                     self.only_params = val.lower() == "true"
+                if key == "since":
+                    self.start_year = val
 
     def show(self):
         log.info("---=== CONFIG %s ===---", self.conf_file)
@@ -63,6 +66,7 @@ class ConfigReader(object):
         log.info("|-host: %s", self.target_host)
         log.info("|-keywords-only: %s", self.keys_only)
         log.info("|-query-parameter-urls-only: %s", self.only_params)
+        log.info("|-since: %s", self.start_year)
         log.info("---=== CONFIG %s ===---", self.conf_file)
 
     def override(self, args):
